@@ -1,0 +1,44 @@
+site_name: Skogum R&D Design Handbook
+site_description: Frontend design system, component patterns, and Next.js gotchas for the Skogum agent team
+repo_url: https://github.com/Skogum-R-D/design-handbook
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: indigo
+    accent: deep purple
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - Stack & Versions: stack.md
+  - Design System:
+    - Colors & Themes: design/colors.md
+    - Typography: design/typography.md
+    - Spacing & Layout: design/layout.md
+    - Glassmorphism: design/glassmorphism.md
+    - Animations: design/animations.md
+  - Components:
+    - Button: components/button.md
+    - Card: components/card.md
+    - Input & Textarea: components/input.md
+  - Gotchas & Fixes: gotchas.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - attr_list
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Skogum-R-D
