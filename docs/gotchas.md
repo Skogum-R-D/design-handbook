@@ -199,3 +199,47 @@ The `@/` alias is configured in `tsconfig.json` as `"paths": { "@/*": ["./*"] }`
 ```
 
 See [Colors & Themes](design/colors.md) for the full correct variable set.
+
+
+---
+
+## Gotcha 11 — Agents add packages but never update the lock file
+
+**Symptom:** `Module not found: Can't resolve 'resend'` (or any other package) in Vercel/CI even though the package is listed in `package.json`.
+
+**Root cause:** Agents push `package.json` edits via the GitHub API — they never run `npm install`. The `package-lock.json` is never updated, so CI/Vercel can't resolve the package from the lock file.
+
+**Fix:** After any agent adds a package, run locally:
+```bash
+cd <repo>
+npm install --legacy-peer-deps
+git add package-lock.json
+git commit -m "chore: update package-lock.json"
+git push origin main
+```
+
+**Prevention:** Always commit `package-lock.json` to the repo. If it's missing entirely, run `npm install --legacy-peer-deps` once and push it.
+
+---
+
+## Gotcha 12 — Agents over-engineer API routes with uninstalled packages
+
+**Symptom:** Build errors for `@upstash/ratelimit`, `@upstash/redis`, `dompurify`, `jsdom` — packages the agent added without being asked.
+
+**Root cause:** The model sometimes adds rate limiting, sanitization, and other "nice to have" extras beyond the assignment scope, importing packages that aren't installed.
+
+**Fix:** Rewrite the route to only import what's in `package.json`. For the contact form, the only allowed imports are `next/server` and `resend`.
+
+**Prevention:** Assignment descriptions should explicitly say: *"Do not add any packages beyond what is already installed. Keep the implementation minimal."*
+
+---
+
+## Gotcha 13 — Python `def` syntax in TypeScript files
+
+**Symptom:** `Expected ';', '}' or <eof>` build error on a line like `def getRatelimit() {`.
+
+**Root cause:** The model occasionally slips into Python syntax when writing TypeScript, especially for helper functions.
+
+**Fix:** Replace `def functionName()` with `function functionName()`.
+
+**Prevention:** QA static analysis catches this — ensure QA always reads `route.ts` and component files before approving.
