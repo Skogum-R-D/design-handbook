@@ -265,3 +265,45 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 ```
 
 **Prevention:** The system prompt already says `import from "@/components/ui/..."` — reinforce this in every task description that involves UI components.
+
+
+---
+
+## Gotcha 15 — Never extend MotionProps in ButtonProps — use `as any` at the spread site
+
+**Symptom:** TypeScript build error pointing at the `export interface ButtonProps` declaration, or conflicts on `onDrag`, `onAnimationStart`, and other overlapping event handlers.
+
+**Root cause:** `MotionProps` and `React.ButtonHTMLAttributes<HTMLButtonElement>` share many event handler types with incompatible signatures. Extending both in a single interface causes TypeScript errors — even after `Omit<MotionProps, "children">` — because the conflict goes far beyond `children`.
+
+**Fix:** Keep `ButtonProps` extending only `React.ButtonHTMLAttributes` and `VariantProps`. Resolve the type conflict with `as any` at the spread site — not in the interface:
+
+```tsx
+// WRONG — creates conflicts on onDrag, onAnimationStart, etc.
+type MotionPropsWithoutChildren = Omit<MotionProps, "children">;
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants>,
+    MotionPropsWithoutChildren {}
+
+// CORRECT
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, ...props }, ref) => (
+    <motion.button
+      className={buttonVariants({ variant, size, className })}
+      ref={ref}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      {...(props as any)}
+    />
+  )
+);
+```
+
+**Prevention:** Never put `MotionProps` in a component prop interface. Always cast at the call site with `as any`.
