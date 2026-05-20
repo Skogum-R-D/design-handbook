@@ -243,3 +243,25 @@ git push origin main
 **Fix:** Replace `def functionName()` with `function functionName()`.
 
 **Prevention:** QA static analysis catches this — ensure QA always reads `route.ts` and component files before approving.
+
+
+---
+
+## Gotcha 14 — Wrong import path for UI components
+
+**Symptom:** `Uncaught Error: ./components/navbar.tsx:6:1` or similar — component resolves to `undefined` at runtime.
+
+**Root cause:** Agents import from `@/components/button` or `@/components/card` instead of `@/components/ui/button` and `@/components/ui/card`. The `ui/` subdirectory is required.
+
+**Fix:** Change all shadcn/ui component imports:
+```ts
+// Wrong
+import { Button } from "@/components/button";
+import { Card } from "@/components/card";
+
+// Correct
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+```
+
+**Prevention:** The system prompt already says `import from "@/components/ui/..."` — reinforce this in every task description that involves UI components.
